@@ -21,13 +21,14 @@ def evaluate_answer(user_answer, model_answer):
     score = int(similarity * 100)
 
     if similarity >= 0.75:
-        feedback = "Excellent answer. Covers most key points."
-    elif similarity >= 0.5:
-        feedback = "Good answer but missing some important concepts."
-    elif similarity >= 0.3:
-        feedback = "Average answer. Needs more clarity and depth."
+    feedback = "Excellent answer. Covers concepts and internal working."
+    elif similarity >= 0.55:
+    feedback = "Good answer but missing some internal details."
+    elif similarity >= 0.4:
+    feedback = "Average answer. Needs more clarity and depth."
     else:
-        feedback = "Poor answer. Revise core concepts."
+    feedback = "Poor answer. Revise core concepts and internals."
+
 
     return similarity, score, feedback
 
