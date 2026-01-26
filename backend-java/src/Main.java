@@ -1,13 +1,12 @@
-import dao.UserDAO;
-import dao.AnswerDAO;
-import model.User;
-import model.Answer;
+import dao.*;
+import model.*;
+import service.FlaskClient;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        // Create user
+        // 1. Insert user
         User user = new User();
         user.setName("Archit Mahajan");
         user.setEmail("archit@test.com");
@@ -15,17 +14,32 @@ public class Main {
 
         UserDAO userDAO = new UserDAO();
         int userId = userDAO.insertUser(user);
-        System.out.println("User created with ID: " + userId);
 
-        // Store answer
+        // 2. Insert answer
         Answer answer = new Answer();
         answer.setUserId(userId);
-        answer.setQuestionId(1); // existing question
-        answer.setUserAnswer("HashMap stores key-value pairs and is not synchronized.");
+        answer.setQuestionId(1);
+        answer.setUserAnswer(
+            "HashMap stores key value pairs and is not synchronized"
+        );
 
         AnswerDAO answerDAO = new AnswerDAO();
-        answerDAO.insertAnswer(answer);
+        int answerId = answerDAO.insertAnswer(answer); // return generated id
 
-        System.out.println("Answer stored successfully.");
+        // 3. Call Flask AI
+        String modelAnswer =
+            "HashMap is part of java.util package and stores key value pairs and is not synchronized";
+
+        EvaluationResult result =
+            FlaskClient.evaluateAnswer(answer.getUserAnswer(), modelAnswer);
+
+        System.out.println("Score: " + result.getScore());
+        System.out.println("Feedback: " + result.getFeedback());
+
+        // 4. Store evaluation
+        EvaluationDAO evalDAO = new EvaluationDAO();
+        evalDAO.saveEvaluation(answerId, result);
+
+        System.out.println("Evaluation stored successfully.");
     }
 }
