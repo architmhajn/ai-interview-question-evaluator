@@ -1,5 +1,6 @@
 package server;
 
+
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
@@ -7,6 +8,12 @@ import com.sun.net.httpserver.HttpExchange;
 import dao.*;
 import model.*;
 import service.FlaskClient;
+import com.google.gson.Gson;
+import model.EvaluationRequest;
+import model.EvaluationResult;
+import dao.UserDAO;
+import dao.AnswerDAO;
+import dao.EvaluationDAO;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -27,15 +34,15 @@ public class InterviewServer {
 
     static class InterviewHandler implements HttpHandler {
 
-      @Override
+    @Override
 public void handle(HttpExchange exchange) throws IOException {
 
-    // ---- CORS HEADERS (IMPORTANT) ----
+    // ---------- CORS HEADERS ----------
     exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
     exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
     exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 
-    // ---- Handle preflight request ----
+    // ---------- Preflight ----------
     if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
         exchange.sendResponseHeaders(204, -1);
         return;
@@ -46,27 +53,44 @@ public void handle(HttpExchange exchange) throws IOException {
         return;
     }
 
-    // ---- Read request body ----
-    String requestBody = new String(
+    // ---------- Read request body ----------
+    String body = new String(
         exchange.getRequestBody().readAllBytes(),
         java.nio.charset.StandardCharsets.UTF_8
     );
 
-    // Basic parsing
-    String userAnswer = requestBody.split("\"answer\":\"")[1].split("\"")[0];
+    // ---------- Parse JSON safely using Gson ----------
+    Gson gson = new Gson();
+    EvaluationRequest req = gson.fromJson(body, EvaluationRequest.class);
 
-    String modelAnswer =
-        "HashMap is part of java.util package and stores key value pairs and is not synchronized";
+    String userAnswer = req.getAnswer();
+    String modelAnswer = req.getModelAnswer();
 
-    // Call Flask
-    EvaluationResult result =
-        FlaskClient.evaluateAnswer(userAnswer, modelAnswer);
+    // ---------- Call Flask AI ----------
+UserDAO userDAO = new UserDAO();
+AnswerDAO answerDAO = new AnswerDAO();
+EvaluationDAO evaluationDAO = new EvaluationDAO();
 
-    String jsonResponse = String.format(
-        "{\"score\":%d,\"feedback\":\"%s\"}",
-        result.getScore(),
-        result.getFeedback()
-    );
+// 1️⃣ Save user
+int userId = userDAO.insertUser(req.getName());
+
+// 2️⃣ Save answer
+int answerId = answerDAO.insertAnswer(
+    userId,
+    req.getQuestion(),
+    userAnswer
+);
+
+// 3️⃣ Call Flask AI
+EvaluationResult result =
+    FlaskClient.evaluateAnswer(userAnswer, modelAnswer);
+
+// 4️⃣ Save evaluation
+evaluationDAO.saveEvaluation(answerId, result);
+
+
+    // ---------- Build response ----------
+    String jsonResponse = gson.toJson(result);
 
     exchange.getResponseHeaders().add("Content-Type", "application/json");
     exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
@@ -76,4 +100,5 @@ public void handle(HttpExchange exchange) throws IOException {
     }
 }
 
-    }}
+    }
+}

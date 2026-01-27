@@ -1,44 +1,29 @@
 package dao;
 
 import db.DBConnection;
-import model.Answer;
+import model.EvaluationResult;
+import java.sql.*;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+public class EvaluationDAO {
 
-public class AnswerDAO {
-
-    public int insertAnswer(Answer answer) {
-        int generatedId = -1;
+    public void saveEvaluation(int answerId, EvaluationResult result) {
 
         String sql =
-            "INSERT INTO answers (user_id, question_id, user_answer) VALUES (?, ?, ?)";
+            "INSERT INTO evaluations (answer_id, score, feedback) VALUES (?, ?, ?)";
 
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(
-                     sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-            if (con == null) {
-                System.out.println("❌ DB connection failed. Answer not inserted.");
-                return -1;
-            }
-
-            ps.setInt(1, answer.getUserId());
-            ps.setInt(2, answer.getQuestionId());
-            ps.setString(3, answer.getUserAnswer());
+            ps.setInt(1, answerId);
+            ps.setInt(2, result.getScore());
+            ps.setString(3, result.getFeedback());
 
             ps.executeUpdate();
 
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                generatedId = rs.getInt(1);
-            }
+            System.out.println("✅ Evaluation saved");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return generatedId;
     }
 }

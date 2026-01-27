@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "InterviewServer",
+      "request": "launch",
+      "mainClass": "InterviewServer",
+      "projectName": "AI-Interview_138ba999"
+    },
+    {
+      "type": "java",
       "name": "Run Main",
       "request": "launch",
       "mainClass": "Main",

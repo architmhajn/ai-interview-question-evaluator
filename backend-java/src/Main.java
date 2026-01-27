@@ -1,45 +1,41 @@
-import dao.*;
-import model.*;
-import service.FlaskClient;
+// import dao.*;
+// import model.*;
+// import service.FlaskClient;
 
-public class Main {
+// public class Main {
 
-    public static void main(String[] args) {
+//     public static void main(String[] args) {
 
-        // 1. Insert user
-        User user = new User();
-        user.setName("Archit Mahajan");
-        user.setEmail("archit@test.com");
-        user.setRole("Java Developer");
+//         UserDAO userDAO = new UserDAO();
+//         AnswerDAO answerDAO = new AnswerDAO();
+//         EvaluationDAO evaluationDAO = new EvaluationDAO();
 
-        UserDAO userDAO = new UserDAO();
-        int userId = userDAO.insertUser(user);
+//         // 1️⃣ Insert user
+//         int userId = userDAO.insertUser("Archit Mahajan");
 
-        // 2. Insert answer
-        Answer answer = new Answer();
-        answer.setUserId(userId);
-        answer.setQuestionId(1);
-        answer.setUserAnswer(
-            "HashMap stores key value pairs and is not synchronized"
-        );
+//         // 2️⃣ Insert answer
+//         int answerId = answerDAO.insertAnswer(
+//             userId,
+//             "What is HashMap in Java?",
+//             "HashMap stores key value pairs and is not synchronized"
+//         );
 
-        AnswerDAO answerDAO = new AnswerDAO();
-        int answerId = answerDAO.insertAnswer(answer); // return generated id
+//         // 3️⃣ Call Flask AI
+//         String modelAnswer =
+//             "HashMap is part of java.util package and stores key value pairs and is not synchronized";
 
-        // 3. Call Flask AI
-        String modelAnswer =
-            "HashMap is part of java.util package and stores key value pairs and is not synchronized";
+//         EvaluationResult result =
+//             FlaskClient.evaluateAnswer(
+//                 "HashMap stores key value pairs and is not synchronized",
+//                 modelAnswer
+//             );
 
-        EvaluationResult result =
-            FlaskClient.evaluateAnswer(answer.getUserAnswer(), modelAnswer);
+//         System.out.println("Score: " + result.getScore());
+//         System.out.println("Feedback: " + result.getFeedback());
 
-        System.out.println("Score: " + result.getScore());
-        System.out.println("Feedback: " + result.getFeedback());
+//         // 4️⃣ Store evaluation
+//         evaluationDAO.saveEvaluation(answerId, result);
 
-        // 4. Store evaluation
-        EvaluationDAO evalDAO = new EvaluationDAO();
-        evalDAO.saveEvaluation(answerId, result);
-
-        System.out.println("Evaluation stored successfully.");
-    }
-}
+//         System.out.println("✅ Evaluation stored successfully.");
+//     }
+// }

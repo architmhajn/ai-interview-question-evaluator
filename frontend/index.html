@@ -17,20 +17,26 @@
             <input id="name" type="text" class="form-control" placeholder="Enter your name">
         </div>
 
-        <!-- Question -->
-        <div class="mb-3">
-            <label class="form-label">Question</label>
-            <textarea class="form-control" readonly>
-Explain HashMap in Java.
-            </textarea>
-        </div>
+       <!-- Question -->
+<div class="mb-3">
+    <label class="form-label">Interview Question</label>
+    <textarea id="question" class="form-control" rows="2"
+        placeholder="Enter interview question..."></textarea>
+</div>
 
-        <!-- Answer -->
-        <div class="mb-3">
-            <label class="form-label">Your Answer</label>
-            <textarea id="answer" class="form-control" rows="4"
-                placeholder="Type your answer here..."></textarea>
-        </div>
+<!-- Reference Answer -->
+<div class="mb-3">
+    <label class="form-label">Reference Answer (Expected)</label>
+    <textarea id="modelAnswer" class="form-control" rows="3"
+        placeholder="Enter expected answer for evaluation..."></textarea>
+</div>
+
+<!-- User Answer -->
+<div class="mb-3">
+    <label class="form-label">Your Answer</label>
+    <textarea id="answer" class="form-control" rows="4"
+        placeholder="Type your answer here..."></textarea>
+</div>
 
         <!-- Submit -->
         <button type="button" class="btn btn-primary w-100" onclick="submitAnswer()">
@@ -41,29 +47,29 @@ Explain HashMap in Java.
         <div id="result" class="mt-4"></div>
     </div>
 </div>
-
 <script>
 function submitAnswer() {
-
     const name = document.getElementById("name").value.trim();
+    const question = document.getElementById("question").value.trim();
+    const modelAnswer = document.getElementById("modelAnswer").value.trim();
     const answer = document.getElementById("answer").value.trim();
 
-    if (name === "" || answer === "") {
-        alert("Please enter your name and answer.");
+    if (!name || !question || !modelAnswer || !answer) {
+        alert("Please fill all fields.");
         return;
     }
 
     fetch("http://localhost:8080/submit", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             name: name,
+            question: question,
+            modelAnswer: modelAnswer,
             answer: answer
         })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
         document.getElementById("result").innerHTML = `
             <hr>
@@ -71,12 +77,43 @@ function submitAnswer() {
             <p><strong>Feedback:</strong> ${data.feedback}</p>
         `;
     })
-    .catch(err => {
-        console.error(err);
-        alert("Error connecting to server.");
-    });
+    .catch(() => alert("Error connecting to server."));
 }
 </script>
+<script>
+function submitAnswer() {
+    const name = document.getElementById("name").value.trim();
+    const question = document.getElementById("question").value.trim();
+    const modelAnswer = document.getElementById("modelAnswer").value.trim();
+    const answer = document.getElementById("answer").value.trim();
+
+    if (!name || !question || !modelAnswer || !answer) {
+        alert("Please fill all fields.");
+        return;
+    }
+
+    fetch("http://localhost:8080/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name: name,
+            question: question,
+            modelAnswer: modelAnswer,
+            answer: answer
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerHTML = `
+            <hr>
+            <h4>Score: ${data.score}</h4>
+            <p><strong>Feedback:</strong> ${data.feedback}</p>
+        `;
+    })
+    .catch(() => alert("Error connecting to server."));
+}
+</script>
+
 
 </body>
 </html>

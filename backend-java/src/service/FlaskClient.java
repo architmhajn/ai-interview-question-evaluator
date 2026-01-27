@@ -6,6 +6,9 @@ import model.EvaluationResult;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FlaskClient {
 
@@ -17,21 +20,23 @@ public class FlaskClient {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
             con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type", "application/json");
+            con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
             con.setDoOutput(true);
 
-            String jsonInput = String.format(
-                "{\"user_answer\":\"%s\",\"model_answer\":\"%s\"}",
-                userAnswer.replace("\"", "'"),
-                modelAnswer.replace("\"", "'")
-            );
+            // ✅ Build JSON safely using Gson
+            Map<String, String> payload = new HashMap<>();
+            payload.put("user_answer", userAnswer);
+            payload.put("model_answer", modelAnswer);
+
+            Gson gson = new Gson();
+            String jsonInput = gson.toJson(payload);
 
             try (OutputStream os = con.getOutputStream()) {
-                os.write(jsonInput.getBytes());
+                os.write(jsonInput.getBytes(StandardCharsets.UTF_8));
             }
 
             BufferedReader br = new BufferedReader(
-                new InputStreamReader(con.getInputStream())
+                new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8)
             );
 
             StringBuilder response = new StringBuilder();
@@ -40,7 +45,9 @@ public class FlaskClient {
                 response.append(line);
             }
 
-            Gson gson = new Gson();
+            // 🔍 DEBUG (optional, remove later)
+            System.out.println("Flask response: " + response);
+
             result = gson.fromJson(response.toString(), EvaluationResult.class);
 
         } catch (Exception e) {

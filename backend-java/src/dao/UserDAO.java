@@ -1,27 +1,22 @@
 package dao;
 
 import db.DBConnection;
-import model.User;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class UserDAO {
 
-    public int insertUser(User user) {
+    public int insertUser(String name) {
         int generatedId = -1;
 
-        String sql = "INSERT INTO users (name, email, role) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO users (name) VALUES (?)";
 
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql,
-                     PreparedStatement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = con.prepareStatement(
+                     sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getRole());
-
+            ps.setString(1, name);
             ps.executeUpdate();
 
             ResultSet rs = ps.getGeneratedKeys();
