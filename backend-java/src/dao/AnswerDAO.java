@@ -1,29 +1,30 @@
 package dao;
 
 import db.DBConnection;
-import model.EvaluationResult;
 import java.sql.*;
 
-public class EvaluationDAO {
+public class AnswerDAO {
 
-    public void saveEvaluation(int answerId, EvaluationResult result) {
-
-        String sql =
-            "INSERT INTO evaluations (answer_id, score, feedback) VALUES (?, ?, ?)";
+    public int insertAnswer(int userId, String question, String answer) {
+        int generatedId = -1;
+        String sql = "INSERT INTO answers (user_id, question, answer) VALUES (?, ?, ?)";
 
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setInt(1, answerId);
-            ps.setInt(2, result.getScore());
-            ps.setString(3, result.getFeedback());
-
+            ps.setInt(1, userId);
+            ps.setString(2, question);
+            ps.setString(3, answer);
             ps.executeUpdate();
 
-            System.out.println("✅ Evaluation saved");
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                generatedId = rs.getInt(1);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return generatedId;
     }
 }
